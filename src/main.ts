@@ -9,7 +9,7 @@ import AppCubismUserModel from './model/AppCubismUserModel';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-    const resourcesDir = '../l2dsdk/Sample/TypeScript/Demo/Resources/Haru/';
+    const resourcesDir = './Resources/Haru/';
 
     /**
      * Canvasの初期化
