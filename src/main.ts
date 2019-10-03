@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
 
     const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-    
+
     /**
      * WebGLコンテキストの初期化
      */
@@ -60,40 +60,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     const modelSetting = new CubismModelSettingJson(model3JsonArrayBuffer, model3JsonArrayBuffer.byteLength) as ICubismModelSetting;
 
     /**
-     * Live2Dモデルの表示に必要なファイルを読み込む
+     * Live2Dモデルの表示に必要なファイルのパスを設定から取得する
      */
 
     // .moc3
     const moc3FilePath = `${resourcesDir}${modelSetting.getModelFileName()}`;
-    const moc3ArrayBuffer = await loadAsArrayBufferAsync(`${moc3FilePath}`)
-        .catch(error => {
-            console.log(error);
-            return null;
-        }) as ArrayBuffer;
-
-    if (moc3ArrayBuffer === null) return;
 
     // テクスチャ
-    const textures: WebGLTexture[] = [];
+    const textureFilePathes = [];
     const textureCount = modelSetting.getTextureCount();
     for (let i = 0; i < textureCount; i++) {
         const textureFilePath = `${resourcesDir}${modelSetting.getTextureFileName(i)}`;
-        textures.push(await createTexture(textureFilePath, gl));
+        textureFilePathes.push(textureFilePath);
     }
+    if (textureFilePathes.length === 0) return;
 
     /**
-     * そのほかのファイルを読む
+     * そのほかのファイルのパスを設定から取得する
      */
 
     // .pose3.json
     const pose3FilePath = `${resourcesDir}${modelSetting.getPoseFileName()}`;
-    const pose3ArrayBuffer = await loadAsArrayBufferAsync(`${pose3FilePath}`)
-        .catch(error => {
-            console.log(error);
-            return null;
-        }) as ArrayBuffer;
 
+    /**
+     * ファイル、テクスチャをまとめてロード
+     */
+    const [
+        moc3ArrayBuffer, 
+        textures, 
+        pose3ArrayBuffer
+    ] = await Promise.all([
+        loadAsArrayBufferAsync(moc3FilePath),   // モデルファイル
+        Promise.all(textureFilePathes.map(path => createTexture(path, gl))),    // テクスチャ
+        loadAsArrayBufferAsync(pose3FilePath)   // ポーズファイル
+    ]);
 
+    if (moc3ArrayBuffer === null) return;
+    
     /**
      * Live2Dモデルの作成と設定
      */
@@ -124,7 +127,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // NOTE: modelMatrixは、モデルのユニット単位での幅と高さが1×1に収まるように縮めようとしている？
     const modelMatrix = model.getModelMatrix();
     const projectionMatrix = new CubismMatrix44();
-    const scale = 4;
+    const scale = 2;
     // NOTE:
     // 1×1にしたモデルを、キャンバスの縦横比になるように引き延ばそうとする
     // 高さを調整してモデルを正しく表示するには、高さを canvas.width/canvas.height 倍する
