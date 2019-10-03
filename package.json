@@ -1,0 +1,25 @@
+{
+  "name": "cubism4webgl_samples",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "parcel public/index.html",
+    "build": "parcel build src/main.ts -d dist/prd --no-source-maps",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://tatsuteb@github.com/tatsuteb/Cubism4WebGL_Samples.git"
+  },
+  "author": "tatsuteb",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tatsuteb/Cubism4WebGL_Samples/issues"
+  },
+  "homepage": "https://github.com/tatsuteb/Cubism4WebGL_Samples#readme",
+  "devDependencies": {
+    "parcel-bundler": "^1.12.3",
+    "typescript": "^3.6.3"
+  }
+}
