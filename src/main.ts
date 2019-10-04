@@ -143,8 +143,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     /**
      * Live2Dモデルの描画
-     */
-    
+     */    
     
     //  頂点の更新
     model.update();
@@ -163,7 +162,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 });
 
-
+/**
+ * ファイルをArrayBufferとしてロードする
+ * @param path ファイルのパス
+ */
 async function loadAsArrayBufferAsync(path: string): Promise<ArrayBuffer> {
 
     const response = await fetch(path)
@@ -184,7 +186,11 @@ async function loadAsArrayBufferAsync(path: string): Promise<ArrayBuffer> {
 
 }
 
-
+/**
+ * テクスチャを生成する
+ * @param path テクスチャのパス
+ * @param gl WebGLコンテキスト
+ */
 async function createTexture(path: string, gl: WebGLRenderingContext): Promise<WebGLTexture> {
 
     return new Promise((resolve: (texture: WebGLTexture) => void, reject: (e: string) => void) => {

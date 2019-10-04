@@ -7,7 +7,9 @@ export default class AppCubismUserModel extends CubismUserModel {
         super();
     }
 
-
+    /**
+     * モデルのパラメータを更新する
+     */
     public update() {
 
         // ポーズ
