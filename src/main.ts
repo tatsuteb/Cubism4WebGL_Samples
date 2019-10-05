@@ -125,11 +125,12 @@ document.addEventListener('DOMContentLoaded', async () => {
      */
 
     const projectionMatrix = new CubismMatrix44();
-    const modelRatio = model.getModel().getCanvasHeight() / model.getModel().getCanvasWidth();
     const resizeModel = () => {
 
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
+        // NOTE: HTMLキャンバスのclientWidth、clientHeightが変わってもwidthとheightは変わらないので、自分で更新する
+        // NOTE: スマートフォン向けにdevicePixelRatioを考慮しないとモデルがぼやける
+        canvas.width = canvas.clientWidth * devicePixelRatio;
+        canvas.height = canvas.clientHeight * devicePixelRatio;
 
         // NOTE: modelMatrixは、モデルのユニット単位での幅と高さが1×1に収まるように縮めようとしている？
         const modelMatrix = model.getModelMatrix();
@@ -140,13 +141,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 高さを調整してモデルを正しく表示するには、高さを canvas.width/canvas.height 倍する
         // 幅を調整してモデルを正しく表示するには、幅を canvas.height / canvas.width 倍する
         const canvasRatio = canvas.height / canvas.width;
-        if (modelRatio < canvasRatio) {
+        if (1 < canvasRatio) {
             // モデルが横にはみ出る時は、HTMLキャンバスの幅で合わせる
             projectionMatrix.scale(1, canvas.width / canvas.height);
         } else {
-            // モデルが上にはみ出る時は、HTMLキャンバスの高さで合わせる
+            // モデルが上にはみ出る時は、HTMLキャンバスの高さで合わせる（スマホのランドスケープモードとか）
             projectionMatrix.scale(canvas.height / canvas.width, 1);
         }
+
     
         // モデルが良い感じの大きさになるように拡大・縮小
         projectionMatrix.scaleRelative(scale, scale);
@@ -184,9 +186,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
     requestAnimationFrame(loop);
 
-
+    
     window.onresize = () => {
-        
+
         resizeModel();
 
     };
