@@ -164,18 +164,20 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Live2Dモデルの描画
      */
 
+    // フレームバッファとビューポートを、フレームワーク設定
+    const viewport: number[] = [
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    ];
     const loop = (time: number) => {
 
         // 頂点の更新
         model.update();
-    
-        // フレームバッファとビューポートを、フレームワーク設定
-        const viewport: number[] = [
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        ];
+
+        viewport[2] = canvas.width;
+        viewport[3] = canvas.height;
         model.getRenderer().setRenderState(frameBuffer, viewport);
     
         // モデルの描画
