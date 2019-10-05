@@ -124,41 +124,76 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Live2Dモデルのサイズ調整
      */
 
-    // NOTE: modelMatrixは、モデルのユニット単位での幅と高さが1×1に収まるように縮めようとしている？
-    const modelMatrix = model.getModelMatrix();
     const projectionMatrix = new CubismMatrix44();
-    const scale = 2;
-    // NOTE:
-    // 1×1にしたモデルを、キャンバスの縦横比になるように引き延ばそうとする
-    // 高さを調整してモデルを正しく表示するには、高さを canvas.width/canvas.height 倍する
-    // 幅を調整してモデルを正しく表示するには、幅を canvas.height / canvas.width 倍する
-    projectionMatrix.scale(1, canvas.width / canvas.height);
+    const resizeModel = () => {
 
-    // モデルが良い感じの大きさになるように拡大・縮小
-    projectionMatrix.scaleRelative(scale, scale);
+        // NOTE: HTMLキャンバスのclientWidth、clientHeightが変わってもwidthとheightは変わらないので、自分で更新する
+        // NOTE: スマートフォン向けにdevicePixelRatioを考慮しないとモデルがぼやける
+        canvas.width = canvas.clientWidth * devicePixelRatio;
+        canvas.height = canvas.clientHeight * devicePixelRatio;
 
-    projectionMatrix.multiplyByMatrix(modelMatrix);
-    model.getRenderer().setMvpMatrix(projectionMatrix);
+        // NOTE: modelMatrixは、モデルのユニット単位での幅と高さが1×1に収まるように縮めようとしている？
+        const modelMatrix = model.getModelMatrix();
+        projectionMatrix.loadIdentity();
+        const scale = 2;
+        // NOTE:
+        // 1×1にしたモデルを、キャンバスの縦横比になるように引き延ばそうとする
+        // 高さを調整してモデルを正しく表示するには、高さを canvas.width/canvas.height 倍する
+        // 幅を調整してモデルを正しく表示するには、幅を canvas.height / canvas.width 倍する
+        const canvasRatio = canvas.height / canvas.width;
+        if (1 < canvasRatio) {
+            // モデルが横にはみ出る時は、HTMLキャンバスの幅で合わせる
+            projectionMatrix.scale(1, canvas.width / canvas.height);
+        } else {
+            // モデルが上にはみ出る時は、HTMLキャンバスの高さで合わせる（スマホのランドスケープモードとか）
+            projectionMatrix.scale(canvas.height / canvas.width, 1);
+        }
+
+    
+        // モデルが良い感じの大きさになるように拡大・縮小
+        projectionMatrix.scaleRelative(scale, scale);
+    
+        projectionMatrix.multiplyByMatrix(modelMatrix);
+        model.getRenderer().setMvpMatrix(projectionMatrix);
+
+    };
+    resizeModel();
 
 
     /**
      * Live2Dモデルの描画
-     */    
-    
-    //  頂点の更新
-    model.update();
-    
+     */
+
     // フレームバッファとビューポートを、フレームワーク設定
     const viewport: number[] = [
-        0, 
-        0, 
+        0,
+        0,
         canvas.width,
         canvas.height
     ];
-    model.getRenderer().setRenderState(frameBuffer, viewport);
+    const loop = (time: number) => {
 
-    // モデルの描画
-    model.getRenderer().drawModel();
+        // 頂点の更新
+        model.update();
+
+        viewport[2] = canvas.width;
+        viewport[3] = canvas.height;
+        model.getRenderer().setRenderState(frameBuffer, viewport);
+    
+        // モデルの描画
+        model.getRenderer().drawModel();
+
+        requestAnimationFrame(loop);
+
+    };
+    requestAnimationFrame(loop);
+
+    
+    window.onresize = () => {
+
+        resizeModel();
+
+    };
 
 });
 
