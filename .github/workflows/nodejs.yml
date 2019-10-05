@@ -24,7 +24,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: submodule update, npm install, build, and test
       run: |
-        git submodule update
+        git submodule update --init --recursive
         npm install
         npm run build --if-present
       env:
