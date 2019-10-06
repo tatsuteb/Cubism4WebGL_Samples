@@ -15,6 +15,7 @@ import { async } from 'q';
 document.addEventListener('DOMContentLoaded', async () => {
 
     const resourcesDir = './Resources/Haru/';
+    const model3JsonFilename = 'Haru.model3.json';
 
     /**
      * Canvasの初期化
@@ -50,7 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      * .model3.jsonファイルを読み込む
      */
 
-    const model3JsonArrayBuffer = await loadAsArrayBufferAsync(`${resourcesDir}Haru.model3.json`)
+    const model3JsonArrayBuffer = await loadAsArrayBufferAsync(`${resourcesDir}${model3JsonFilename}`)
         .catch(error => {
             console.log(error);
             return null;
@@ -88,7 +89,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const pose3FilePath = `${resourcesDir}${modelSetting.getPoseFileName()}`;
 
     // .motion3.json
-    const motionFilePathes: string[] = [];
+    const motionMetaDataArr: {
+        path: string;
+        fadeIn: number;
+        fadeOut: number;
+    }[] = [];
     for(let i = 0; i < modelSetting.getMotionGroupCount(); i++) {
 
         const groupName = modelSetting.getMotionGroupName(i);
@@ -96,7 +101,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         for(let j = 0; j < modelSetting.getMotionCount(groupName); j++) {
         
             const filename = modelSetting.getMotionFileName(groupName, j);
-            motionFilePathes.push(`${resourcesDir}${filename}`)
+            motionMetaDataArr.push({
+                path: `${resourcesDir}${filename}`,
+                fadeIn: modelSetting.getMotionFadeInTimeValue(groupName, j),
+                fadeOut: modelSetting.getMotionFadeOutTimeValue(groupName, j)
+            });
         
         }
 
@@ -114,7 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadAsArrayBufferAsync(moc3FilePath),   // モデルファイル
         Promise.all(textureFilePathes.map(path => createTexture(path, gl))),    // テクスチャ
         loadAsArrayBufferAsync(pose3FilePath),   // ポーズファイル
-        Promise.all(motionFilePathes.map(path => createMotion(path))) // モーションファイル
+        Promise.all(motionMetaDataArr.map(meta => createMotion(meta.path, meta.fadeIn, meta.fadeOut))) // モーションファイル
     ]);
 
     if (moc3ArrayBuffer === null) return;
@@ -220,7 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (motionManager.isFinished()) {
             const index = Math.floor(Math.random() * motions.length);
             motionManager.startMotionPriority(motions[index], false, 0);
-            console.log(index, motionFilePathes[index]);
+            console.log(index, motionMetaDataArr[index]);
         }
 
         // 頂点の更新
@@ -321,10 +330,15 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
  * モーションを生成する
  * @param path モーションファイルのパス
  */
-async function createMotion(path: string): Promise<CubismMotion> {
+async function createMotion(path: string, fadeIn: number = 1, fadeOut: number = 1): Promise<CubismMotion> {
     
     const buffer = await loadAsArrayBufferAsync(path);
     
-    return CubismMotion.create(buffer, buffer.byteLength);
+    const motion =  CubismMotion.create(buffer, buffer.byteLength);
     
+    if (fadeIn > 0) motion.setFadeInTime(fadeIn);
+    if (fadeOut > 0) motion.setFadeOutTime(fadeOut);
+
+    return motion;
+
 }
