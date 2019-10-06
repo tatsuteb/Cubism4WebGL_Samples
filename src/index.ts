@@ -20,6 +20,10 @@ import CubismMotion = cubismmotion.CubismMotion;
 import { Live2DCubismFramework as cubismmotionmanager } from '../l2dsdk/Framework/motion/cubismmotionmanager';
 import CubismMotionManager = cubismmotionmanager.CubismMotionManager;
 
+// physics
+import { Live2DCubismFramework as cubismphysics } from '../l2dsdk/Framework/physics/cubismphysics';
+import CubismPhysics = cubismphysics.CubismPhysics;
+
 // cubismid
 import { Live2DCubismFramework as cubismid } from '../l2dsdk/Framework/id/cubismid';
 import CubismIdHandle = cubismid.CubismIdHandle;
@@ -36,6 +40,7 @@ export {
     CubismUserModel,
     CubismMotion,
     CubismMotionManager,
+    CubismPhysics,
     CubismIdHandle,
     csmVector
 };

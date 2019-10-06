@@ -13,8 +13,8 @@ import AppCubismUserModel from './model/AppCubismUserModel';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-    const resourcesDir = './Resources/Haru/';
-    const model3JsonFilename = 'Haru.model3.json';
+    const resourcesDir = './Resources/Hiyori/';
+    const model3JsonFilename = 'Hiyori.model3.json';
 
     /**
      * Canvasの初期化
@@ -110,6 +110,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     }
 
+    // .physics3.json
+    const physics3FilePath = `${resourcesDir}${modelSetting.getPhysicsFileName()}`;
+
+
     /**
      * ファイル、テクスチャをまとめてロード
      */
@@ -117,12 +121,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         moc3ArrayBuffer, 
         textures, 
         pose3ArrayBuffer,
-        motions
+        motions,
+        physics3ArrayBuffer
     ] = await Promise.all([
         loadAsArrayBufferAsync(moc3FilePath),   // モデルファイル
         Promise.all(textureFilePathes.map(path => createTexture(path, gl))),    // テクスチャ
         loadAsArrayBufferAsync(pose3FilePath),   // ポーズファイル
-        Promise.all(motionMetaDataArr.map(meta => createMotion(meta.path, meta.fadeIn, meta.fadeOut))) // モーションファイル
+        Promise.all(motionMetaDataArr.map(meta => createMotion(meta.path, meta.fadeIn, meta.fadeOut))), // モーションファイル
+        loadAsArrayBufferAsync(physics3FilePath),   // 物理演算ファイル
     ]);
 
     if (moc3ArrayBuffer === null) return;
@@ -165,6 +171,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // ループ再生を有効にする
         // motion.setIsLoop(true);
     });
+
+    // 物理演算設定
+    model.loadPhysics(physics3ArrayBuffer, physics3ArrayBuffer.byteLength);
+
 
     /**
      * Live2Dモデルのサイズ調整
@@ -233,7 +243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // 頂点の更新
-        model.update();
+        model.update(deltaTimeSecond);
 
         viewport[2] = canvas.width;
         viewport[3] = canvas.height;
