@@ -15,6 +15,8 @@ import { Live2DCubismFramework as cubismusermodel } from '../l2dsdk/Framework/mo
 import CubismUserModel = cubismusermodel.CubismUserModel;
 
 // motion
+import { Live2DCubismFramework as acubismmotion } from '../l2dsdk/Framework/motion/acubismmotion';
+import ACubismMotion = acubismmotion.ACubismMotion;
 import { Live2DCubismFramework as cubismmotion } from '../l2dsdk/Framework/motion/cubismmotion';
 import CubismMotion = cubismmotion.CubismMotion;
 import { Live2DCubismFramework as cubismmotionmanager } from '../l2dsdk/Framework/motion/cubismmotionmanager';
@@ -38,6 +40,7 @@ export {
     CubismModelSettingJson,
     CubismMatrix44,
     CubismUserModel,
+    ACubismMotion,
     CubismMotion,
     CubismMotionManager,
     CubismPhysics,

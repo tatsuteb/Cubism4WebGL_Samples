@@ -121,13 +121,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         moc3ArrayBuffer, 
         textures, 
         pose3ArrayBuffer,
-        motions,
+        motionArrayBuffers,
         physics3ArrayBuffer
     ] = await Promise.all([
         loadAsArrayBufferAsync(moc3FilePath),   // モデルファイル
         Promise.all(textureFilePathes.map(path => createTexture(path, gl))),    // テクスチャ
         loadAsArrayBufferAsync(pose3FilePath),   // ポーズファイル
-        Promise.all(motionMetaDataArr.map(meta => createMotion(meta.path, meta.fadeIn, meta.fadeOut))), // モーションファイル
+        Promise.all(motionMetaDataArr.map(meta => loadAsArrayBufferAsync(meta.path))), // モーションファイル
         loadAsArrayBufferAsync(physics3FilePath),   // 物理演算ファイル
     ]);
 
@@ -165,12 +165,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
         lipSyncParamIds.pushBack(modelSetting.getLipSyncParameterId(i));
     }
-    // モーションの設定
-    motions.forEach(motion => {
-        motion.setEffectIds(eyeBlinkParamIds, lipSyncParamIds);
-        // ループ再生を有効にする
-        // motion.setIsLoop(true);
-    });
+    // // モーションの設定
+    // motionArrayBuffers.forEach(motion => {
+    //     motion.setEffectIds(eyeBlinkParamIds, lipSyncParamIds);
+    //     // ループ再生を有効にする
+    //     // motion.setIsLoop(true);
+    // });
 
     // 物理演算設定
     model.loadPhysics(physics3ArrayBuffer, physics3ArrayBuffer.byteLength);
@@ -232,15 +232,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loop = (time: number) => {
         // 最後の更新からの経過時間を秒で求める
         const deltaTimeSecond = (time - lastUpdateTime) / 1000;
-        // モデルのパラメータを更新
-        motionManager.updateMotion(model.getModel(), deltaTimeSecond);
-        // 何も再生していない場合は、モーションをランダムに選んで再生する
-        if (motionManager.isFinished()) {
-            const index = Math.floor(Math.random() * motions.length);
-            motionManager.startMotionPriority(motions[index], false, 0);
 
-            showMotionName(motionMetaDataArr[index].path);
-        }
+        // model.getModel().loadParameters();
+        // // モデルのパラメータを更新
+        // motionManager.updateMotion(model.getModel(), deltaTimeSecond);
+        // // 何も再生していない場合は、モーションをランダムに選んで再生する
+        // if (motionManager.isFinished()) {
+        //     const index = Math.floor(Math.random() * motionArrayBuffers.length);
+        //     motionManager.startMotionPriority(motionArrayBuffers[index], false, 0);
+
+        //     showMotionName(motionMetaDataArr[index].path);
+        // }
+        // model.getModel().saveParameters();
 
         // 頂点の更新
         model.update(deltaTimeSecond);
@@ -333,23 +336,6 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
         img.src = path;
 
     });
-
-}
-
-/**
- * モーションを生成する
- * @param path モーションファイルのパス
- */
-async function createMotion(path: string, fadeIn: number = 1, fadeOut: number = 1): Promise<CubismMotion> {
-    
-    const buffer = await loadAsArrayBufferAsync(path);
-    
-    const motion =  CubismMotion.create(buffer, buffer.byteLength);
-    
-    if (fadeIn > 0) motion.setFadeInTime(fadeIn);
-    if (fadeOut > 0) motion.setFadeOutTime(fadeOut);
-
-    return motion;
 
 }
 
