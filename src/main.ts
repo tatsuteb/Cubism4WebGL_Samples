@@ -2,9 +2,14 @@ import {
     CubismFramework,
     ICubismModelSetting,
     CubismModelSettingJson,
-    CubismMatrix44
+    CubismMatrix44,
+    CubismMotion,
+    CubismMotionManager,
+    CubismIdHandle,
+    csmVector
 } from './index';
 import AppCubismUserModel from './model/AppCubismUserModel';
+import { async } from 'q';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -82,17 +87,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     // .pose3.json
     const pose3FilePath = `${resourcesDir}${modelSetting.getPoseFileName()}`;
 
+    // .motion3.json
+    const motionFilePathes: string[] = [];
+    for(let i = 0; i < modelSetting.getMotionGroupCount(); i++) {
+
+        const groupName = modelSetting.getMotionGroupName(i);
+        
+        for(let j = 0; j < modelSetting.getMotionCount(groupName); j++) {
+        
+            const filename = modelSetting.getMotionFileName(groupName, j);
+            motionFilePathes.push(`${resourcesDir}${filename}`)
+        
+        }
+
+    }
+
     /**
      * ファイル、テクスチャをまとめてロード
      */
     const [
         moc3ArrayBuffer, 
         textures, 
-        pose3ArrayBuffer
+        pose3ArrayBuffer,
+        motions
     ] = await Promise.all([
         loadAsArrayBufferAsync(moc3FilePath),   // モデルファイル
         Promise.all(textureFilePathes.map(path => createTexture(path, gl))),    // テクスチャ
-        loadAsArrayBufferAsync(pose3FilePath)   // ポーズファイル
+        loadAsArrayBufferAsync(pose3FilePath),   // ポーズファイル
+        Promise.all(motionFilePathes.map(path => createMotion(path))) // モーションファイル
     ]);
 
     if (moc3ArrayBuffer === null) return;
@@ -116,9 +138,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             .bindTexture(index, texture);
     });
     // そのほかレンダラの設定
-    model.getRenderer().setIsPremultipliedAlpha(false);
+    model.getRenderer().setIsPremultipliedAlpha(true);
     model.getRenderer().startUp(gl);
 
+    // NOTE: モーションに目ぱちと口パク用のIDのベクター型配列を渡さずに再生すると、nullで落ちるので注意
+    // 目ぱちと口パク用のIDを取得
+    const eyeBlinkParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
+    for (let i = 0; i < modelSetting.getEyeBlinkParameterCount(); i++) {
+        eyeBlinkParamIds.pushBack(modelSetting.getEyeBlinkParameterId(i));
+    }
+    const lipSyncParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
+    for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
+        lipSyncParamIds.pushBack(modelSetting.getLipSyncParameterId(i));
+    }
+    // モーションの設定
+    motions.forEach(motion => {
+        motion.setEffectIds(eyeBlinkParamIds, lipSyncParamIds);
+        // ループ再生を有効にする
+        // motion.setIsLoop(true);
+    });
 
     /**
      * Live2Dモデルのサイズ調整
@@ -149,7 +187,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             projectionMatrix.scale(canvas.height / canvas.width, 1);
         }
 
-    
         // モデルが良い感じの大きさになるように拡大・縮小
         projectionMatrix.scaleRelative(scale, scale);
     
@@ -158,12 +195,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     };
     resizeModel();
-
-
+    
     /**
      * Live2Dモデルの描画
      */
-
+    
     // フレームバッファとビューポートを、フレームワーク設定
     const viewport: number[] = [
         0,
@@ -171,7 +207,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         canvas.width,
         canvas.height
     ];
+    // モーションマネージャーを作成。モーションの再生や終了の確認を行う
+    const motionManager = new CubismMotionManager();
+    // 最後の更新時間
+    let lastUpdateTime = 0;
     const loop = (time: number) => {
+        // 最後の更新からの経過時間を秒で求める
+        const deltaTimeSecond = (time - lastUpdateTime) / 1000;
+        // モデルのパラメータを更新
+        motionManager.updateMotion(model.getModel(), deltaTimeSecond);
+        // 何も再生していない場合は、モーションをランダムに選んで再生する
+        if (motionManager.isFinished()) {
+            const index = Math.floor(Math.random() * motions.length);
+            motionManager.startMotionPriority(motions[index], false, 0);
+            console.log(index, motionFilePathes[index]);
+        }
 
         // 頂点の更新
         model.update();
@@ -183,6 +233,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // モデルの描画
         model.getRenderer().drawModel();
 
+        lastUpdateTime = time;
         requestAnimationFrame(loop);
 
     };
@@ -264,4 +315,16 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
 
     });
 
+}
+
+/**
+ * モーションを生成する
+ * @param path モーションファイルのパス
+ */
+async function createMotion(path: string): Promise<CubismMotion> {
+    
+    const buffer = await loadAsArrayBufferAsync(path);
+    
+    return CubismMotion.create(buffer, buffer.byteLength);
+    
 }

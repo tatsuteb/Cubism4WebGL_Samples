@@ -14,10 +14,28 @@ import CubismMatrix44 = cubismmatrix44.CubismMatrix44;
 import { Live2DCubismFramework as cubismusermodel } from '../l2dsdk/Framework/model/cubismusermodel';
 import CubismUserModel = cubismusermodel.CubismUserModel;
 
+// motion
+import { Live2DCubismFramework as cubismmotion } from '../l2dsdk/Framework/motion/cubismmotion';
+import CubismMotion = cubismmotion.CubismMotion;
+import { Live2DCubismFramework as cubismmotionmanager } from '../l2dsdk/Framework/motion/cubismmotionmanager';
+import CubismMotionManager = cubismmotionmanager.CubismMotionManager;
+
+// cubismid
+import { Live2DCubismFramework as cubismid } from '../l2dsdk/Framework/id/cubismid';
+import CubismIdHandle = cubismid.CubismIdHandle;
+
+//type
+import { Live2DCubismFramework as csmvector } from '../l2dsdk/Framework/type/csmvector';
+import csmVector = csmvector.csmVector;
+
 export {
     CubismFramework,
     ICubismModelSetting,
     CubismModelSettingJson,
     CubismMatrix44,
-    CubismUserModel
+    CubismUserModel,
+    CubismMotion,
+    CubismMotionManager,
+    CubismIdHandle,
+    csmVector
 };

@@ -1,4 +1,4 @@
-import { CubismUserModel } from '../index';
+import { CubismUserModel, ICubismModelSetting } from '../index';
 
 
 export default class AppCubismUserModel extends CubismUserModel {
