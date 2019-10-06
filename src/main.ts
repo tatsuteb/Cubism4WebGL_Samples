@@ -9,7 +9,6 @@ import {
     csmVector
 } from './index';
 import AppCubismUserModel from './model/AppCubismUserModel';
-import { async } from 'q';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -229,7 +228,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (motionManager.isFinished()) {
             const index = Math.floor(Math.random() * motions.length);
             motionManager.startMotionPriority(motions[index], false, 0);
-            console.log(index, motionMetaDataArr[index]);
+
+            showMotionName(motionMetaDataArr[index].path);
         }
 
         // 頂点の更新
@@ -340,5 +340,16 @@ async function createMotion(path: string, fadeIn: number = 1, fadeOut: number = 
     if (fadeOut > 0) motion.setFadeOutTime(fadeOut);
 
     return motion;
+
+}
+
+/**
+ * モーションの名前を表示する
+ * @param name モーションの名前
+ */
+function showMotionName(name: string) {
+    
+    const motionNameElement = document.getElementById('motionName');
+    motionNameElement.innerText = name;
 
 }
