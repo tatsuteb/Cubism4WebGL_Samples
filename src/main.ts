@@ -3,10 +3,7 @@ import {
     ICubismModelSetting,
     CubismModelSettingJson,
     CubismMatrix44,
-    CubismMotion,
-    CubismMotionManager,
-    CubismIdHandle,
-    csmVector
+    CubismMotionManager
 } from './index';
 import AppCubismUserModel from './model/AppCubismUserModel';
 
@@ -155,22 +152,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     model.getRenderer().setIsPremultipliedAlpha(true);
     model.getRenderer().startUp(gl);
 
-    // NOTE: モーションに目ぱちと口パク用のIDのベクター型配列を渡さずに再生すると、nullで落ちるので注意
-    // 目ぱちと口パク用のIDを取得
-    const eyeBlinkParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
-    for (let i = 0; i < modelSetting.getEyeBlinkParameterCount(); i++) {
-        eyeBlinkParamIds.pushBack(modelSetting.getEyeBlinkParameterId(i));
-    }
-    const lipSyncParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
-    for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
-        lipSyncParamIds.pushBack(modelSetting.getLipSyncParameterId(i));
-    }
-    // // モーションの設定
-    // motionArrayBuffers.forEach(motion => {
-    //     motion.setEffectIds(eyeBlinkParamIds, lipSyncParamIds);
-    //     // ループ再生を有効にする
-    //     // motion.setIsLoop(true);
-    // });
+    // モーションの設定
+    motionArrayBuffers.forEach((buffer: ArrayBuffer, idx: number) => {
+        
+        model.addMotion(
+            buffer,
+            motionMetaDataArr[idx].path,
+            motionMetaDataArr[idx].fadeIn,
+            motionMetaDataArr[idx].fadeOut
+        );
+
+    });
 
     // 物理演算設定
     model.loadPhysics(physics3ArrayBuffer, physics3ArrayBuffer.byteLength);
@@ -232,18 +224,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const loop = (time: number) => {
         // 最後の更新からの経過時間を秒で求める
         const deltaTimeSecond = (time - lastUpdateTime) / 1000;
-
-        // model.getModel().loadParameters();
-        // // モデルのパラメータを更新
-        // motionManager.updateMotion(model.getModel(), deltaTimeSecond);
-        // // 何も再生していない場合は、モーションをランダムに選んで再生する
-        // if (motionManager.isFinished()) {
-        //     const index = Math.floor(Math.random() * motionArrayBuffers.length);
-        //     motionManager.startMotionPriority(motionArrayBuffers[index], false, 0);
-
-        //     showMotionName(motionMetaDataArr[index].path);
-        // }
-        // model.getModel().saveParameters();
 
         // 頂点の更新
         model.update(deltaTimeSecond);
@@ -336,16 +316,5 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
         img.src = path;
 
     });
-
-}
-
-/**
- * モーションの名前を表示する
- * @param name モーションの名前
- */
-function showMotionName(name: string) {
-    
-    const motionNameElement = document.getElementById('motionName');
-    motionNameElement.innerText = name;
 
 }

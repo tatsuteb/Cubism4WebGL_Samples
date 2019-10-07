@@ -1,24 +1,40 @@
-import { CubismUserModel, ACubismMotion } from '../index';
+import {
+    CubismUserModel,
+    ACubismMotion,
+    CubismMotion,
+    csmVector,
+    CubismIdHandle
+} from '../index';
 
-interface MotionInfo {
-    id: number;
-    name: string;
-
+interface MotionResources {
+    [name: string]: ACubismMotion;
 }
 
 export default class AppCubismUserModel extends CubismUserModel {
 
-    private static nextMotionId = 0;
-
-    private motions: ACubismMotion[];
-    private _motionInfoList: MotionInfo[];
+    private motionResources: MotionResources;
+    private lipSyncParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
+    private eyeBlinkParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
 
     constructor() {
+
         super();
 
-        this.motions = [];
-        this._motionInfoList = [];
+        this.motionResources = {};
+        this.lipSyncParamIds = new csmVector<CubismIdHandle>();
+        this.eyeBlinkParamIds = new csmVector<CubismIdHandle>();
 
+        // NOTE: モーションに目ぱちと口パク用のIDのベクター型配列を渡さずに再生すると、nullで落ちるので注意
+        // 目ぱちと口パク用のIDを取得
+        // const eyeBlinkParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
+        // for (let i = 0; i < modelSetting.getEyeBlinkParameterCount(); i++) {
+        //     eyeBlinkParamIds.pushBack(modelSetting.getEyeBlinkParameterId(i));
+        // }
+        // const lipSyncParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
+        // for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
+        //     lipSyncParamIds.pushBack(modelSetting.getLipSyncParameterId(i));
+        // }
+        
     }
 
     /**
@@ -26,31 +42,27 @@ export default class AppCubismUserModel extends CubismUserModel {
      * @param buffer モーションデータ
      * @param name モーション名
      */
-    public addMotion(buffer: ArrayBuffer, name: string, fadeIn: number = 1, fadeOut: number = 1): number {
+    public addMotion(buffer: ArrayBuffer, name: string, fadeIn: number = 1, fadeOut: number = 1): string {
 
         const motion = this.loadMotion(buffer, buffer.byteLength, name);
         
         if (fadeIn > 0) motion.setFadeInTime(fadeIn);
         if (fadeOut > 0) motion.setFadeOutTime(fadeOut);
 
-        const motionInfo = {
-            id: AppCubismUserModel.nextMotionId++,
-            name
-        } as MotionInfo;
+        (motion as CubismMotion).setEffectIds(this.eyeBlinkParamIds, this.lipSyncParamIds);
 
-        this.motions.push(motion);
-        this._motionInfoList.push(motionInfo);
+        this.motionResources[name] = motion;
 
-        return motionInfo.id;
+        return name;
 
     }
 
     /**
      * 登録されているモーションのIDと名前のリストを返す
      */
-    public get motionInfoList(): MotionInfo[] {
+    public get motionNames(): string[] {
 
-        return this.motionInfoList;
+        return Object.keys(this.motionResources);
 
     }
 
@@ -59,10 +71,25 @@ export default class AppCubismUserModel extends CubismUserModel {
      */
     public update(deltaTimeSecond: number) {
 
+        this.getModel().loadParameters();
+        
+        // モデルのパラメータを更新
+        this._motionManager.updateMotion(this.getModel(), deltaTimeSecond);
+        // 何も再生していない場合は、モーションをランダムに選んで再生する
+        if (this._motionManager.isFinished()) {
+            const index = Math.floor(Math.random() * this.motionNames.length);
+            this._motionManager.startMotionPriority(this.motionResources[this.motionNames[index]], false, 0);
+
+            console.log(this.motionNames[index]);
+        }
+
+        this.getModel().saveParameters();
+
         // ポーズ
         if (this._pose !== null)
             this._pose.updateParameters(this._model, 0);
         
+        // 物理演算
         if (this._physics != null)
             this._physics.evaluate(this._model, deltaTimeSecond);
 
