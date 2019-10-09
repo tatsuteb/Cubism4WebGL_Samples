@@ -217,8 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         canvas.width,
         canvas.height
     ];
-    // モーションマネージャーを作成。モーションの再生や終了の確認を行う
-    const motionManager = new CubismMotionManager();
+
     // 最後の更新時間
     let lastUpdateTime = 0;
     const loop = (time: number) => {
@@ -227,6 +226,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // 頂点の更新
         model.update(deltaTimeSecond);
+        
+        if (model.isMotionFinished) {
+            
+            const idx = Math.floor(Math.random() * model.motionNames.length);
+            const name = model.motionNames[idx];
+            model.startMotionByName(name);
+            
+            setMotioinName(name);
+
+        }
 
         viewport[2] = canvas.width;
         viewport[3] = canvas.height;
@@ -316,5 +325,13 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
         img.src = path;
 
     });
+
+}
+
+function setMotioinName(name: string) {
+
+    const motionNameElement = document.getElementById('motionName');
+
+    motionNameElement.innerText = name;
 
 }

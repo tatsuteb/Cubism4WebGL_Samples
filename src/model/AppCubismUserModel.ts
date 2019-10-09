@@ -67,6 +67,29 @@ export default class AppCubismUserModel extends CubismUserModel {
     }
 
     /**
+     * モーションの再生が終わっているかどうか
+     */
+    public get isMotionFinished(): boolean {
+
+        return this._motionManager.isFinished();
+
+    }
+
+    /**
+     * モーションの名前を指定して再生する
+     * @param name モーション名
+     */
+    public startMotionByName(name: string) {
+
+        const motion = this.motionResources[name];
+
+        if (!motion) return;
+
+        this._motionManager.startMotionPriority(motion, false, 0);
+
+    };
+
+    /**
      * モデルのパラメータを更新する
      */
     public update(deltaTimeSecond: number) {
@@ -75,13 +98,6 @@ export default class AppCubismUserModel extends CubismUserModel {
         
         // モデルのパラメータを更新
         this._motionManager.updateMotion(this.getModel(), deltaTimeSecond);
-        // 何も再生していない場合は、モーションをランダムに選んで再生する
-        if (this._motionManager.isFinished()) {
-            const index = Math.floor(Math.random() * this.motionNames.length);
-            this._motionManager.startMotionPriority(this.motionResources[this.motionNames[index]], false, 0);
-
-            console.log(this.motionNames[index]);
-        }
 
         this.getModel().saveParameters();
 
