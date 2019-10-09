@@ -30,6 +30,10 @@ import CubismPhysics = cubismphysics.CubismPhysics;
 import { Live2DCubismFramework as cubismid } from '../l2dsdk/Framework/id/cubismid';
 import CubismIdHandle = cubismid.CubismIdHandle;
 
+// effect
+import { Live2DCubismFramework as cubismeyeblink } from '../l2dsdk/Framework/effect/cubismeyeblink';
+import CubismEyeBlink = cubismeyeblink.CubismEyeBlink;
+
 //type
 import { Live2DCubismFramework as csmvector } from '../l2dsdk/Framework/type/csmvector';
 import csmVector = csmvector.csmVector;
@@ -45,5 +49,6 @@ export {
     CubismMotionManager,
     CubismPhysics,
     CubismIdHandle,
+    CubismEyeBlink,
     csmVector
 };

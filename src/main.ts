@@ -3,7 +3,8 @@ import {
     ICubismModelSetting,
     CubismModelSettingJson,
     CubismMatrix44,
-    CubismMotionManager
+    CubismMotionManager,
+    CubismEyeBlink
 } from './index';
 import AppCubismUserModel from './model/AppCubismUserModel';
 
@@ -152,7 +153,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     model.getRenderer().setIsPremultipliedAlpha(true);
     model.getRenderer().startUp(gl);
 
-    // モーションの設定
+    // 自動目ぱち設定
+    model.setEyeBlink(CubismEyeBlink.create(modelSetting));
+    
+    // モーションに適用する目ぱち用IDを設定
+    for (let i = 0; i < modelSetting.getEyeBlinkParameterCount(); i++) {
+
+        model.addEyeBlinkParameterId(modelSetting.getEyeBlinkParameterId(i));
+
+    }
+    // モーションに適用する口パク用IDを設定
+    for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
+
+        model.addLipSyncParameterId(modelSetting.getLipSyncParameterId(i));
+
+    }
+    // モーションを登録
     motionArrayBuffers.forEach((buffer: ArrayBuffer, idx: number) => {
         
         model.addMotion(
@@ -232,7 +248,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const idx = Math.floor(Math.random() * model.motionNames.length);
             const name = model.motionNames[idx];
             model.startMotionByName(name);
-            
+
             setMotioinName(name);
 
         }

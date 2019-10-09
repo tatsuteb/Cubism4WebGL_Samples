@@ -3,7 +3,8 @@ import {
     ACubismMotion,
     CubismMotion,
     csmVector,
-    CubismIdHandle
+    CubismIdHandle,
+    CubismEyeBlink
 } from '../index';
 
 interface MotionResources {
@@ -23,17 +24,26 @@ export default class AppCubismUserModel extends CubismUserModel {
         this.motionResources = {};
         this.lipSyncParamIds = new csmVector<CubismIdHandle>();
         this.eyeBlinkParamIds = new csmVector<CubismIdHandle>();
+        
+    }
 
-        // NOTE: モーションに目ぱちと口パク用のIDのベクター型配列を渡さずに再生すると、nullで落ちるので注意
-        // 目ぱちと口パク用のIDを取得
-        // const eyeBlinkParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
-        // for (let i = 0; i < modelSetting.getEyeBlinkParameterCount(); i++) {
-        //     eyeBlinkParamIds.pushBack(modelSetting.getEyeBlinkParameterId(i));
-        // }
-        // const lipSyncParamIds: csmVector<CubismIdHandle> = new csmVector<CubismIdHandle>();
-        // for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
-        //     lipSyncParamIds.pushBack(modelSetting.getLipSyncParameterId(i));
-        // }
+    public setEyeBlink(eyeBlink: CubismEyeBlink) {
+
+        this._eyeBlink = eyeBlink;
+
+    }
+
+    public addEyeBlinkParameterId(id: CubismIdHandle) {
+
+        this.eyeBlinkParamIds
+            .pushBack(id);
+
+    }
+
+    public addLipSyncParameterId(id: CubismIdHandle) {
+
+        this.lipSyncParamIds
+            .pushBack(id);
         
     }
 
@@ -97,9 +107,15 @@ export default class AppCubismUserModel extends CubismUserModel {
         this.getModel().loadParameters();
         
         // モデルのパラメータを更新
-        this._motionManager.updateMotion(this.getModel(), deltaTimeSecond);
+        const motionUpdated = this._motionManager.updateMotion(this.getModel(), deltaTimeSecond);
 
         this.getModel().saveParameters();
+
+        // まばたき
+        if(!motionUpdated && this._eyeBlink != null)
+        {
+            this._eyeBlink.updateParameters(this._model, deltaTimeSecond);
+        }
 
         // ポーズ
         if (this._pose !== null)
