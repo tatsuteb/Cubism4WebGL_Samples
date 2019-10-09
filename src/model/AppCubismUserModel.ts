@@ -27,12 +27,20 @@ export default class AppCubismUserModel extends CubismUserModel {
         
     }
 
+    /**
+     * 自動目ぱちを設定
+     * @param eyeBlink 
+     */
     public setEyeBlink(eyeBlink: CubismEyeBlink) {
 
         this._eyeBlink = eyeBlink;
 
     }
 
+    /**
+     * モーション更新時に置き換える目ぱち用IDを追加
+     * @param id 目ぱち用ID
+     */
     public addEyeBlinkParameterId(id: CubismIdHandle) {
 
         this.eyeBlinkParamIds
@@ -40,6 +48,10 @@ export default class AppCubismUserModel extends CubismUserModel {
 
     }
 
+    /**
+     * モーション更新時に置き換える口パク用IDを追加
+     * @param id 口パク用ID
+     */
     public addLipSyncParameterId(id: CubismIdHandle) {
 
         this.lipSyncParamIds

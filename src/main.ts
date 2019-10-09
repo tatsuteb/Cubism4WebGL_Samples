@@ -344,6 +344,10 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
 
 }
 
+/**
+ * 再生中のモーション名を表示する
+ * @param name モーションの名前
+ */
 function setMotioinName(name: string) {
 
     const motionNameElement = document.getElementById('motionName');
