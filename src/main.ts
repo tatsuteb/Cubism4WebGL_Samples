@@ -2,14 +2,17 @@ import {
     CubismFramework,
     ICubismModelSetting,
     CubismModelSettingJson,
-    CubismMatrix44
+    CubismMatrix44,
+    CubismMotionManager,
+    CubismEyeBlink
 } from './index';
 import AppCubismUserModel from './model/AppCubismUserModel';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
 
-    const resourcesDir = './Resources/Haru/';
+    const resourcesDir = './Resources/Hiyori/';
+    const model3JsonFilename = 'Hiyori.model3.json';
 
     /**
      * Canvasの初期化
@@ -45,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      * .model3.jsonファイルを読み込む
      */
 
-    const model3JsonArrayBuffer = await loadAsArrayBufferAsync(`${resourcesDir}Haru.model3.json`)
+    const model3JsonArrayBuffer = await loadAsArrayBufferAsync(`${resourcesDir}${model3JsonFilename}`)
         .catch(error => {
             console.log(error);
             return null;
@@ -82,17 +85,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     // .pose3.json
     const pose3FilePath = `${resourcesDir}${modelSetting.getPoseFileName()}`;
 
+    // .motion3.json
+    const motionMetaDataArr: {
+        path: string;
+        fadeIn: number;
+        fadeOut: number;
+    }[] = [];
+    for(let i = 0; i < modelSetting.getMotionGroupCount(); i++) {
+
+        const groupName = modelSetting.getMotionGroupName(i);
+        
+        for(let j = 0; j < modelSetting.getMotionCount(groupName); j++) {
+        
+            const filename = modelSetting.getMotionFileName(groupName, j);
+            motionMetaDataArr.push({
+                path: `${resourcesDir}${filename}`,
+                fadeIn: modelSetting.getMotionFadeInTimeValue(groupName, j),
+                fadeOut: modelSetting.getMotionFadeOutTimeValue(groupName, j)
+            });
+        
+        }
+
+    }
+
+    // .physics3.json
+    const physics3FilePath = `${resourcesDir}${modelSetting.getPhysicsFileName()}`;
+
+
     /**
      * ファイル、テクスチャをまとめてロード
      */
     const [
         moc3ArrayBuffer, 
         textures, 
-        pose3ArrayBuffer
+        pose3ArrayBuffer,
+        motionArrayBuffers,
+        physics3ArrayBuffer
     ] = await Promise.all([
         loadAsArrayBufferAsync(moc3FilePath),   // モデルファイル
         Promise.all(textureFilePathes.map(path => createTexture(path, gl))),    // テクスチャ
-        loadAsArrayBufferAsync(pose3FilePath)   // ポーズファイル
+        loadAsArrayBufferAsync(pose3FilePath),   // ポーズファイル
+        Promise.all(motionMetaDataArr.map(meta => loadAsArrayBufferAsync(meta.path))), // モーションファイル
+        loadAsArrayBufferAsync(physics3FilePath),   // 物理演算ファイル
     ]);
 
     if (moc3ArrayBuffer === null) return;
@@ -116,8 +150,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             .bindTexture(index, texture);
     });
     // そのほかレンダラの設定
-    model.getRenderer().setIsPremultipliedAlpha(false);
+    model.getRenderer().setIsPremultipliedAlpha(true);
     model.getRenderer().startUp(gl);
+
+    // 自動目ぱち設定
+    model.setEyeBlink(CubismEyeBlink.create(modelSetting));
+    
+    // モーションに適用する目ぱち用IDを設定
+    for (let i = 0; i < modelSetting.getEyeBlinkParameterCount(); i++) {
+
+        model.addEyeBlinkParameterId(modelSetting.getEyeBlinkParameterId(i));
+
+    }
+    // モーションに適用する口パク用IDを設定
+    for (let i = 0; i < modelSetting.getLipSyncParameterCount(); i++) {
+
+        model.addLipSyncParameterId(modelSetting.getLipSyncParameterId(i));
+
+    }
+    // モーションを登録
+    motionArrayBuffers.forEach((buffer: ArrayBuffer, idx: number) => {
+        
+        model.addMotion(
+            buffer,
+            motionMetaDataArr[idx].path,
+            motionMetaDataArr[idx].fadeIn,
+            motionMetaDataArr[idx].fadeOut
+        );
+
+    });
+
+    // 物理演算設定
+    model.loadPhysics(physics3ArrayBuffer, physics3ArrayBuffer.byteLength);
 
 
     /**
@@ -149,7 +213,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             projectionMatrix.scale(canvas.height / canvas.width, 1);
         }
 
-    
         // モデルが良い感じの大きさになるように拡大・縮小
         projectionMatrix.scaleRelative(scale, scale);
     
@@ -158,12 +221,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     };
     resizeModel();
-
-
+    
     /**
      * Live2Dモデルの描画
      */
-
+    
     // フレームバッファとビューポートを、フレームワーク設定
     const viewport: number[] = [
         0,
@@ -171,10 +233,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         canvas.width,
         canvas.height
     ];
+
+    // 最後の更新時間
+    let lastUpdateTime = 0;
     const loop = (time: number) => {
+        // 最後の更新からの経過時間を秒で求める
+        const deltaTimeSecond = (time - lastUpdateTime) / 1000;
 
         // 頂点の更新
-        model.update();
+        model.update(deltaTimeSecond);
+        
+        if (model.isMotionFinished) {
+            
+            const idx = Math.floor(Math.random() * model.motionNames.length);
+            const name = model.motionNames[idx];
+            model.startMotionByName(name);
+
+            setMotioinName(name);
+
+        }
 
         viewport[2] = canvas.width;
         viewport[3] = canvas.height;
@@ -183,6 +260,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // モデルの描画
         model.getRenderer().drawModel();
 
+        lastUpdateTime = time;
         requestAnimationFrame(loop);
 
     };
@@ -263,5 +341,17 @@ async function createTexture(path: string, gl: WebGLRenderingContext): Promise<W
         img.src = path;
 
     });
+
+}
+
+/**
+ * 再生中のモーション名を表示する
+ * @param name モーションの名前
+ */
+function setMotioinName(name: string) {
+
+    const motionNameElement = document.getElementById('motionName');
+
+    motionNameElement.innerText = name;
 
 }
