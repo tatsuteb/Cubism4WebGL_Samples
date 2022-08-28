@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "parcel public/index.html",
-    "build": "parcel build src/main.ts -d dist/prd --no-source-maps",
+    "build": "parcel build src/main.ts --dist-dir dist/prd --no-source-maps",
     "copy": "mkdirp dist | ncp l2dsdk/Samples/Resources/ dist/Resources",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
