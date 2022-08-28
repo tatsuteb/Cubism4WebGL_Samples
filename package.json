@@ -6,7 +6,7 @@
   "scripts": {
     "start": "parcel public/index.html",
     "build": "parcel build src/main.ts -d dist/prd --no-source-maps",
-    "copy": "mkdirp dist | ncp l2dsdk/Sample/TypeScript/Demo/Resources/ dist/Resources",
+    "copy": "mkdirp dist | ncp l2dsdk/Samples/Resources/ dist/Resources",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,9 +20,11 @@
   },
   "homepage": "https://github.com/tatsuteb/Cubism4WebGL_Samples#readme",
   "devDependencies": {
+    "@parcel/transformer-sass": "^2.7.0",
+    "@parcel/transformer-typescript-tsc": "^2.7.0",
+    "mkdirp": "^1.0.4",
     "ncp": "^2.0.0",
-    "node-sass": "^4.12.0",
-    "parcel-bundler": "^1.12.3",
-    "typescript": "^3.6.3"
+    "parcel": "2.7.0",
+    "typescript": "^4.8.2"
   }
 }

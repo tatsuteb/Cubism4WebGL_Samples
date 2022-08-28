@@ -1,5 +1,5 @@
-import { CubismUserModel } from '../index';
-
+// model
+import { CubismUserModel } from '../../l2dsdk/Framework/src/model/cubismusermodel';
 
 export default class AppCubismUserModel extends CubismUserModel {
 
