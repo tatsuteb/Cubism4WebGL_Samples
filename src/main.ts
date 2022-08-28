@@ -1,11 +1,10 @@
-import {
-    CubismFramework,
-    ICubismModelSetting,
-    CubismModelSettingJson,
-    CubismMatrix44
-} from './index';
-import AppCubismUserModel from './model/AppCubismUserModel';
+import { CubismFramework } from '../l2dsdk/Framework/src/live2dcubismframework';
+import { ICubismModelSetting } from '../l2dsdk/Framework/src/icubismmodelsetting';
+import { CubismModelSettingJson } from '../l2dsdk/Framework/src/cubismmodelsettingjson';
+// math
+import { CubismMatrix44 } from '../l2dsdk/Framework/src/math/cubismmatrix44';
 
+import AppCubismUserModel from './model/AppCubismUserModel';
 
 document.addEventListener('DOMContentLoaded', async () => {
 
@@ -127,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // NOTE: modelMatrixは、モデルのユニット単位での幅と高さが1×1に収まるように縮めようとしている？
     const modelMatrix = model.getModelMatrix();
     const projectionMatrix = new CubismMatrix44();
-    const scale = 2;
+    const scale = 1;
     // NOTE:
     // 1×1にしたモデルを、キャンバスの縦横比になるように引き延ばそうとする
     // 高さを調整してモデルを正しく表示するには、高さを canvas.width/canvas.height 倍する

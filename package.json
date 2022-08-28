@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/tatsuteb/Cubism4WebGL_Samples#readme",
   "devDependencies": {
-    "parcel-bundler": "^1.12.3",
-    "typescript": "^3.6.3"
+    "parcel": "^2.7.0",
+    "typescript": "^4.8.2"
   }
 }
