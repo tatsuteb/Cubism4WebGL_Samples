@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // NOTE: modelMatrixは、モデルのユニット単位での幅と高さが1×1に収まるように縮めようとしている？
         const modelMatrix = model.getModelMatrix();
         projectionMatrix.loadIdentity();
-        const scale = 2;
+        const scale = 1;
         // NOTE:
         // 1×1にしたモデルを、キャンバスの縦横比になるように引き延ばそうとする
         // 高さを調整してモデルを正しく表示するには、高さを canvas.width/canvas.height 倍する
