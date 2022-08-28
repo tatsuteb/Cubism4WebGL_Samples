@@ -1,11 +1,14 @@
-import {
-    CubismUserModel,
-    ACubismMotion,
-    CubismMotion,
-    csmVector,
-    CubismIdHandle,
-    CubismEyeBlink
-} from '../index';
+// math
+import { CubismUserModel } from '../../l2dsdk/Framework/src/model/cubismusermodel';
+// motion
+import { ACubismMotion } from '../../l2dsdk/Framework/src/motion/acubismmotion';
+import { CubismMotion } from '../../l2dsdk/Framework/src/motion/cubismmotion';
+// cubismid
+import { CubismIdHandle } from '../../l2dsdk/Framework/src/id/cubismid';
+// effect
+import { CubismEyeBlink } from '../../l2dsdk/Framework/src/effect/cubismeyeblink';
+//type
+import { csmVector } from '../../l2dsdk/Framework/src/type/csmvector';
 
 interface MotionResources {
     [name: string]: ACubismMotion;

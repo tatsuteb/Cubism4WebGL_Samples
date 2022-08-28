@@ -1,13 +1,12 @@
-import {
-    CubismFramework,
-    ICubismModelSetting,
-    CubismModelSettingJson,
-    CubismMatrix44,
-    CubismMotionManager,
-    CubismEyeBlink
-} from './index';
+import { CubismFramework } from '../l2dsdk/Framework/src/live2dcubismframework';
+import { ICubismModelSetting } from '../l2dsdk/Framework/src/icubismmodelsetting';
+import { CubismModelSettingJson } from '../l2dsdk/Framework/src/cubismmodelsettingjson';
+// math
+import { CubismMatrix44 } from '../l2dsdk/Framework/src/math/cubismmatrix44';
+// effect
+import { CubismEyeBlink } from '../l2dsdk/Framework/src/effect/cubismeyeblink';
+//type
 import AppCubismUserModel from './model/AppCubismUserModel';
-
 
 document.addEventListener('DOMContentLoaded', async () => {
 
